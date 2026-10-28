@@ -24,6 +24,8 @@ import {
     setGameSoundEnabled,
 } from "@/lib/game/sounds";
 import StickyTurnIndicator from "@/components/sticky-turn-indicator";
+import HeartEconomy from "@/components/heart-economy";
+import HeartbeatPanel from "@/components/heartbeat-panel";
 
 type Shot = {
     row: number;
@@ -40,7 +42,13 @@ type MatchState = {
     ownShips: PlacedShip[];
     yourShots: Shot[];
     incomingShots: Shot[];
+    isHeartbeatActive: boolean;
 };
+
+type ActiveHeartbeat = {
+    status: "choosing" | "answering";
+    role: "initiator" | "chooser";
+} | null;
 
 const LETTERS = "ABCDEFGHIJ";
 
@@ -66,10 +74,11 @@ export default function LiveMatch({
     const [lastResult, setLastResult] = useState("");
     const [feedback, setFeedback] = useState<ShotFeedback | null>(null);
     const [animatingCell, setAnimatingCell] = useState<string | null>(null);
-
     const previousIncomingCount = useRef<number | null>(null);
     const feedbackId = useRef(0);
     const [soundEnabled, setSoundEnabled] = useState(true);
+    const isHeartbeatActive = match?.isHeartbeatActive ?? false;
+    const [activeHeartbeat, setActiveHeartbeat] = useState<ActiveHeartbeat>(null);
 
     const closeFeedback = useCallback(() => {
         setFeedback(null);
@@ -138,6 +147,16 @@ export default function LiveMatch({
 
             if (!response.ok) {
                 throw new Error(data.error || "Unable to load match.");
+            }
+
+            const heartbeatResponse = await fetch(
+                `/api/rooms/${roomId}/heartbeats`,
+                { cache: "no-store" }
+            );
+
+            if (heartbeatResponse.ok) {
+                const heartbeatData = await heartbeatResponse.json();
+                setActiveHeartbeat(heartbeatData.heartbeat);
             }
 
             setMatch(data as MatchState);
@@ -243,6 +262,9 @@ export default function LiveMatch({
     );
 
     async function fire(row: number, col: number) {
+        if (isHeartbeatActive) {
+            return;
+        }
         unlockGameAudio();
         if (
             !match ||
@@ -391,62 +413,6 @@ export default function LiveMatch({
                 </button>
             </header>
 
-            <div
-                role="status"
-                aria-live="polite"
-                className={`relative mb-7 overflow-hidden rounded-[2rem] border-2 px-6 py-7 text-center shadow-lg transition-all duration-500 ${finished
-                    ? "border-[#e5c4d6] bg-[#fff0f6] shadow-pink-100"
-                    : match.yourTurn
-                        ? "border-emerald-300 bg-gradient-to-r from-emerald-50 via-white to-teal-50 shadow-emerald-100"
-                        : "border-[#d6c9e9] bg-gradient-to-r from-[#f5efff] via-white to-[#edf1fb] shadow-purple-100"
-                    }`}
-            >
-                {!finished && match.yourTurn && (
-                    <div className="pointer-events-none absolute inset-0 animate-pulse bg-emerald-200/15" />
-                )}
-
-                <div className="relative z-10">
-                    <div className="mb-3 flex justify-center">
-                        <span
-                            className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-black uppercase tracking-[0.18em] ${finished
-                                ? "bg-[#f3d9e8] text-[#935f80]"
-                                : match.yourTurn
-                                    ? "bg-emerald-500 text-white"
-                                    : "bg-[#e8def5] text-[#816b9c]"
-                                }`}
-                        >
-                            {!finished && match.yourTurn && (
-                                <span className="h-2 w-2 animate-ping rounded-full bg-white" />
-                            )}
-
-                            {finished
-                                ? "Battle complete"
-                                : match.yourTurn
-                                    ? "Your move"
-                                    : "Opponent's move"}
-                        </span>
-                    </div>
-
-                    <h2 className="text-2xl font-black tracking-tight text-[#765773] sm:text-3xl">
-                        {finished
-                            ? match.winner === "you"
-                                ? "Victory is yours! ♡"
-                                : "A lovely battle, well fought."
-                            : match.yourTurn
-                                ? "Captain, you're up!"
-                                : `${match.opponentName} is taking their turn`}
-                    </h2>
-
-                    <p className="mt-2 text-sm font-medium text-[#817187]">
-                        {finished
-                            ? "The match has ended."
-                            : match.yourTurn
-                                ? "Your opponent's ocean is ready. Choose where to fire!"
-                                : "Hold tight. Your next turn is coming."}
-                    </p>
-                </div>
-            </div>
-
             <ShotFeedbackPopup
                 feedback={feedback}
                 onClose={closeFeedback}
@@ -466,37 +432,7 @@ export default function LiveMatch({
                     {error}
                 </p>
             )}
-
-            <div className="grid items-start gap-6 xl:grid-cols-2">
-                <BattleBoard
-                    title="Your ocean"
-                    subtitle="Your ships and incoming enemy attacks"
-                    own
-                    ships={ownCells}
-                    shots={incoming}
-                    sunkShips={sunkOwnShips}
-                    animatingCell={feedback?.incoming ? animatingCell : null}
-                    disabled
-                />
-
-                <BattleBoard
-                    title={`${match.opponentName}'s ocean`}
-                    subtitle="Choose a coordinate to attack"
-                    own={false}
-                    ships={new Map()}
-                    shots={outgoing}
-                    sunkShips={sunkEnemyShips}
-                    animatingCell={!feedback?.incoming ? animatingCell : null}
-                    disabled={
-                        busy ||
-                        finished ||
-                        !match.yourTurn
-                    }
-                    onFire={fire}
-                />
-            </div>
-
-            <div className="mt-7 grid gap-4 sm:grid-cols-3">
+            <div className="mt-7 grid gap-4 sm:grid-cols-3 mb-4">
                 <StatCard
                     label="Successful hits"
                     value={`${hits} / 17`}
@@ -510,42 +446,70 @@ export default function LiveMatch({
                     value={`${sunkEnemyShips.size} / 5`}
                 />
             </div>
+            <div className="relative mb-4">
+                <div className="grid items-start gap-6 xl:grid-cols-2">
+                    <BattleBoard
+                        title="Your ocean"
+                        subtitle="Your ships and incoming enemy attacks"
+                        own
+                        ships={ownCells}
+                        shots={incoming}
+                        sunkShips={sunkOwnShips}
+                        animatingCell={feedback?.incoming ? animatingCell : null}
+                        disabled
+                    />
 
-            <div className="mt-7 rounded-[2rem] border border-[#f0e0ed] bg-white/90 p-6 text-center">
-                <h2 className="font-bold text-[#765773]">
-                    Fleet status
-                </h2>
-
-                <p className="mt-2 text-sm text-[#817187]">
-                    Your ships remaining:{" "}
-                    <strong>{5 - sunkOwnShips.size} / 5</strong>
-                    {" · "}
-                    Opponent's ships remaining:{" "}
-                    <strong>{5 - sunkEnemyShips.size} / 5</strong>
-                </p>
-
-                <div className="mt-5 flex flex-wrap justify-center gap-3">
-                    <Link
-                        href={`/room/${roomId}`}
-                        className="rounded-full border border-[#e5cddd] bg-[#fff7fa] px-6 py-3 text-sm font-bold text-[#a26085] transition hover:bg-[#f9e9f1]"
-                    >
-                        Room details
-                    </Link>
-
-                    <Link
-                        href={`/room/${roomId}/placement`}
-                        className="rounded-full border border-[#e5cddd] bg-white px-6 py-3 text-sm font-bold text-[#a26085] transition hover:bg-[#fff7fa]"
-                    >
-                        View your fleet
-                    </Link>
+                    <BattleBoard
+                        title={`${match.opponentName}'s ocean`}
+                        subtitle="Choose a coordinate to attack"
+                        own={false}
+                        ships={new Map()}
+                        shots={outgoing}
+                        sunkShips={sunkEnemyShips}
+                        animatingCell={!feedback?.incoming ? animatingCell : null}
+                        isOpponentTurn={!match.yourTurn && !finished}
+                        disabled={
+                            busy ||
+                            finished ||
+                            !match.yourTurn ||
+                            isHeartbeatActive
+                        }
+                        onFire={fire}
+                    />
                 </div>
+
+                {isHeartbeatActive && (
+                    <div className="absolute inset-0 z-20 flex items-center justify-center overflow-hidden rounded-[2rem] bg-[#241b35]/65 p-4 backdrop-blur-[3px] sm:p-6">
+                        <div className="w-full max-w-md rounded-[2rem] border border-pink-200/80 bg-[#fff7fb] px-6 py-8 text-center shadow-2xl shadow-black/20 sm:px-8">
+                            <div className="mb-4 text-4xl text-[#d77ca5]">
+                                ♡
+                            </div>
+
+                            <h3 className="text-xl font-black text-[#765773] sm:text-2xl">
+                                A Heartbeat Moment
+                            </h3>
+
+                            <p className="mt-3 text-sm leading-relaxed text-[#927e96]">
+                                The battle is paused while you share a little
+                                moment. Your turn will be waiting when
+                                you're done.
+                            </p>
+
+                            <div className="mx-auto mt-5 h-1 w-16 rounded-full bg-gradient-to-r from-[#e9b5cf] via-[#d77ca5] to-[#b8a5d7]" />
+                        </div>
+                    </div>
+                )}
             </div>
+            <HeartEconomy roomId={roomId} />
+            <HeartbeatPanel roomId={roomId} />
+
             <StickyTurnIndicator
                 yourTurn={match.yourTurn}
                 opponentName={match.opponentName}
                 status={match.status}
                 winner={match.winner}
                 busy={busy}
+                heartbeat={activeHeartbeat}
             />
         </main>
     );
@@ -559,6 +523,7 @@ function BattleBoard({
     shots,
     sunkShips,
     disabled,
+    isOpponentTurn = false,
     onFire,
     animatingCell,
 }: {
@@ -569,6 +534,7 @@ function BattleBoard({
     shots: Map<string, Shot>;
     sunkShips: Set<string>;
     disabled: boolean;
+    isOpponentTurn?: boolean;
     onFire?: (row: number, col: number) => void;
     animatingCell?: string | null;
 }) {
@@ -584,7 +550,7 @@ function BattleBoard({
                 </p>
             </div>
 
-            <div className="mx-auto w-full max-w-[550px]">
+            <div className="relative mx-auto w-full max-w-[550px]">
                 <div
                     className="grid gap-1 sm:gap-1.5"
                     style={{
@@ -725,6 +691,23 @@ function BattleBoard({
                         </div>
                     ))}
                 </div>
+                {!own && isOpponentTurn && (
+                    <div className="absolute inset-0 z-20 flex items-center justify-center rounded-xl bg-[#241b35]/55 backdrop-blur-[2px]">
+                        <div className="mx-4 rounded-2xl border border-white/20 bg-[#fff7fb] px-8 py-6 text-center shadow-xl">
+                            <div className="mb-2 text-3xl text-[#d77ca5]">
+                                ♡
+                            </div>
+
+                            <h3 className="text-xl font-black text-[#765773]">
+                                Not Your Turn
+                            </h3>
+
+                            <p className="mt-2 text-sm text-[#927e96]">
+                                Your opponent is making their move.
+                            </p>
+                        </div>
+                    </div>
+                )}
             </div>
 
             <div className="mt-6 flex flex-wrap justify-center gap-4 text-xs text-[#817187]">
@@ -755,7 +738,6 @@ function BattleBoard({
         </section>
     );
 }
-
 
 function Legend({
     color,

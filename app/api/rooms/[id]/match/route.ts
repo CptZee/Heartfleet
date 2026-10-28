@@ -103,6 +103,17 @@ export async function GET(
             );
         }
 
+        const { data: activeHeartbeat, error: heartbeatError } = await db()
+            .from("game_heartbeats")
+            .select("id")
+            .eq("room_id", id)
+            .in("status", ["choosing", "answering"])
+            .maybeSingle();
+
+        if (heartbeatError) {
+            throw heartbeatError;
+        }
+
         const shots = shotsResult.data ?? [];
 
         const formatShot = (shot: (typeof shots)[number]) => ({
@@ -133,6 +144,7 @@ export async function GET(
                 incomingShots: shots
                     .filter((shot) => shot.attacker_id === opponentId)
                     .map(formatShot),
+                isHeartbeatActive: Boolean(activeHeartbeat),
             },
             {
                 headers: {
