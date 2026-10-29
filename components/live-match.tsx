@@ -507,27 +507,32 @@ export default function LiveMatch({
     const misses = match.yourShots.length - hits;
 
     return (
-        <main className="mx-auto w-full max-w-[1450px] flex-1 px-4 pt-8 pb-36 text-[#51475d] sm:px-8 lg:pt-12">
-            <header className="mb-8 text-center">
-                <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#b7789c]">
-                    Heartfleet · Live battle
-                </p>
-
-                <h1 className="mt-3 text-3xl font-bold text-[#765773] sm:text-5xl">
-                    Two fleets. One heart. ♡
-                </h1>
-
-                <p className="mt-3 text-sm text-[#817187]">
-                    {username} vs. {match.opponentName}
-                </p>
-                <button
-                    type="button"
-                    onClick={toggleSound}
-                    aria-pressed={soundEnabled}
-                    className="mt-5 cursor-pointer rounded-full border border-[#e5cddd] bg-white/90 px-5 py-2.5 text-sm font-bold text-[#91627d] transition hover:bg-[#fff0f6]"
-                >
-                    {soundEnabled ? "♪ Sound on" : "♪ Sound off"}
-                </button>
+        <main className="mx-auto w-full max-w-[1320px] flex-1 px-3 pt-4 pb-24 text-[#51475d] sm:px-8 lg:pt-12">
+            <header className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-[#f0e0ed] bg-white/85 px-4 py-3 shadow-sm">
+                <div className="min-w-0">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#b7789c]">
+                        Heartfleet · Live battle
+                    </p>
+                    <h1 className="text-lg font-bold text-[#765773] sm:text-xl">
+                        Two fleets. One heart. ♡
+                    </h1>
+                    <p className="truncate text-xs text-[#817187]">
+                        {username} vs. {match.opponentName}
+                    </p>
+                </div>
+                <div className="flex items-center gap-2">
+                    <span className="rounded-full bg-[#fff0f6] px-3 py-2 text-xs font-bold text-[#91627d]">
+                        {finished ? "Match finished" : isHeartbeatActive ? "Heartbeat moment" : match.yourTurn ? "Your turn" : `${match.opponentName}'s turn`}
+                    </span>
+                    <button
+                        type="button"
+                        onClick={toggleSound}
+                        aria-pressed={soundEnabled}
+                        className="rounded-full border border-[#e5cddd] bg-white px-3 py-2 text-xs font-bold text-[#91627d] transition hover:bg-[#fff0f6]"
+                    >
+                        {soundEnabled ? "♪ On" : "♪ Off"}
+                    </button>
+                </div>
             </header>
 
             <ShotFeedbackPopup
@@ -549,7 +554,7 @@ export default function LiveMatch({
                     {error}
                 </p>
             )}
-            <div className="mt-7 grid gap-4 sm:grid-cols-3 mb-4">
+            <div className="mb-3 grid grid-cols-3 gap-2 sm:gap-3">
                 <StatCard
                     label="Successful hits"
                     value={`${hits} / 17`}
@@ -563,8 +568,8 @@ export default function LiveMatch({
                     value={`${sunkEnemyShips.size} / 5`}
                 />
             </div>
-            <div className="relative mb-4">
-                <div className="grid items-start gap-6 xl:grid-cols-2">
+            <div className="relative mb-3">
+                <div className="grid items-start gap-3 lg:grid-cols-2">
                     <BattleBoard
                         title="Your ocean"
                         subtitle="Your ships and incoming enemy attacks"
@@ -726,9 +731,9 @@ function BattleBoard({
     animatingCell?: string | null;
 }) {
     return (
-        <section className="min-w-0 rounded-[2rem] border border-[#f0e0ed] bg-white/90 p-4 shadow-xl shadow-[#d6b8d0]/15 sm:p-7">
-            <div className="mb-6">
-                <h2 className="text-xl font-bold text-[#765773]">
+        <section className="min-w-0 rounded-2xl border border-[#f0e0ed] bg-white/90 p-3 shadow-md shadow-[#d6b8d0]/10 sm:p-4">
+            <div className="mb-3">
+                <h2 className="text-base font-bold text-[#765773] sm:text-lg">
                     {title}
                 </h2>
 
@@ -737,12 +742,12 @@ function BattleBoard({
                 </p>
             </div>
 
-            <div className="relative mx-auto w-full max-w-[550px]">
+            <div className="relative mx-auto w-full max-w-[490px]">
                 <div
-                    className="grid gap-1 sm:gap-1.5"
+                    className="grid gap-[3px] sm:gap-1"
                     style={{
                         gridTemplateColumns:
-                            "24px repeat(10, minmax(0, 1fr))",
+                            "20px repeat(10, minmax(0, 1fr))",
                     }}
                 >
                     <div />
