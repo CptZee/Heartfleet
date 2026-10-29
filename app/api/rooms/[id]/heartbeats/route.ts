@@ -75,19 +75,31 @@ export async function GET(
         const { data: heartbeat, error } = await db()
             .from("game_heartbeats")
             .select(
-                "id,initiator_id,chooser_id,status," +
-                "question_source,question_key,question_text,created_at"
+                `id,
+         initiator_id,
+         chooser_id,
+         status,
+         question_source,
+         question_key,
+         question_text,
+         created_at`
             )
             .eq("room_id", id)
             .in("status", ["choosing", "answering"])
             .maybeSingle();
 
         if (error) throw error;
+
         const { data: latestResolved, error: resolvedError } = await db()
             .from("game_heartbeats")
             .select(
-                "id,initiator_id,chooser_id,status," +
-                "question_text,answer_text,completed_at"
+                `id,
+         initiator_id,
+         chooser_id,
+         status,
+         question_text,
+         answer_text,
+         completed_at`
             )
             .eq("room_id", id)
             .in("status", ["completed", "skipped"])
@@ -234,6 +246,13 @@ export async function POST(
                 }
             }
 
+            if (typeof questionKey !== "string" || !questionKey.trim()) {
+                return NextResponse.json(
+                    { error: "A valid curated question is required." },
+                    { status: 400 }
+                );
+            }
+
             const { error } = await db().rpc(
                 "choose_game_heartbeat_question",
                 {
@@ -265,20 +284,16 @@ export async function POST(
                 return fail("Invalid Heartbeat.");
             }
 
-            let answer: string | null = null;
+            const answer =
+                typeof body.answer === "string"
+                    ? body.answer.trim()
+                    : "";
 
-            if (body.action === "answer") {
-                if (typeof body.answer !== "string") {
-                    return fail("Please write your answer.");
-                }
-
-                answer = body.answer.trim();
-
-                if (answer.length < 1 || answer.length > 1000) {
-                    return fail(
-                        "Your answer must be between 1 and 1000 characters."
-                    );
-                }
+            if (answer.length < 1 || answer.length > 1000) {
+                return NextResponse.json(
+                    { error: "Answer must contain 1–1000 characters." },
+                    { status: 400 }
+                );
             }
 
             const { error } = await db().rpc(

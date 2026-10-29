@@ -180,7 +180,7 @@ export async function POST(
     const letterText =
         decision === "sealed" && typeof input.letterText === "string"
             ? input.letterText.trim()
-            : null;
+            : undefined;
 
     if (
         decision === "sealed" &&
