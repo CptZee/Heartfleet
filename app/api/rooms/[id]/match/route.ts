@@ -185,21 +185,58 @@ export async function POST(
             );
         }
 
-        const body = await request.json().catch(() => null);
-        const row = body?.row;
-        const col = body?.col;
+        const contentLength = request.headers.get("content-length");
+
+        if (contentLength && Number(contentLength) > 1024) {
+            return NextResponse.json(
+                { error: "Request body too large." },
+                { status: 413 }
+            );
+        }
+
+        const rawBody = await request.text();
+
+        if (rawBody.length > 1024) {
+            return NextResponse.json(
+                { error: "Request body too large." },
+                { status: 413 }
+            );
+        }
+
+        let body: unknown;
+
+        try {
+            body = JSON.parse(rawBody);
+        } catch {
+            return NextResponse.json(
+                { error: "Invalid request body." },
+                { status: 400 }
+            );
+        }
+
+        const payload =
+            body !== null &&
+                typeof body === "object" &&
+                !Array.isArray(body)
+                ? (body as Record<string, unknown>)
+                : {};
+
+        const row = payload.row;
+        const col = payload.col;
 
         if (
+            typeof row !== "number" ||
+            typeof col !== "number" ||
             !Number.isInteger(row) ||
             !Number.isInteger(col) ||
             row < 0 ||
-            row > 9 ||
+            row >= 10 ||
             col < 0 ||
-            col > 9
+            col >= 10
         ) {
             return NextResponse.json(
                 { error: "Invalid attack coordinate." },
-                { status: 400 }
+                { status: 409 }
             );
         }
 
@@ -235,10 +272,32 @@ export async function POST(
         );
 
         if (error) {
-            console.error("Attack rejected:", error.message);
+            const knownErrors: Record<string, string> = {
+                "Invalid coordinate": "Invalid attack coordinate.",
+                "Match is not active": "This match is no longer active.",
+                "Not a participant": "You are not part of this match.",
+                "Not your turn": "Please wait for your turn.",
+                "Coordinate already attacked":
+                    "You've already attacked this coordinate.",
+                "Defender fleet unavailable":
+                    "The opponent's fleet is unavailable.",
+                HEARTBEAT_IN_PROGRESS:
+                    "Please finish the current Heartbeat first.",
+            };
+
+            const message = knownErrors[error.message];
+
+            if (!message) {
+                console.error("Unexpected attack error:", error);
+
+                return NextResponse.json(
+                    { error: "Unable to process your attack." },
+                    { status: 500 }
+                );
+            }
 
             return NextResponse.json(
-                { error: error.message },
+                { error: message },
                 { status: 409 }
             );
         }
