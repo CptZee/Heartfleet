@@ -23,9 +23,17 @@ import {
     unlockGameAudio,
     setGameSoundEnabled,
 } from "@/lib/game/sounds";
+import {
+    getEndgameStage,
+    saveEndgameStage,
+} from "@/lib/game/endgame-progress";
 import StickyTurnIndicator from "@/components/sticky-turn-indicator";
 import HeartEconomy from "@/components/heart-economy";
 import HeartbeatPanel from "@/components/heartbeat-panel";
+import EndgameCelebration from "@/components/endgame-celebration";
+import RemainingHeartbeats from "@/components/remaining-heartbeats";
+import ClosingLetters from "@/components/closing-letters";
+import VoyageSummary from "@/components/voyage-summary";
 
 type Shot = {
     row: number;
@@ -79,6 +87,73 @@ export default function LiveMatch({
     const [soundEnabled, setSoundEnabled] = useState(true);
     const isHeartbeatActive = match?.isHeartbeatActive ?? false;
     const [activeHeartbeat, setActiveHeartbeat] = useState<ActiveHeartbeat>(null);
+    const [showCelebration, setShowCelebration] = useState(false);
+    const previousMatchStatus = useRef<string | null>(null);
+    const celebrationTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const celebrationScheduled = useRef(false);
+    const [endgameStage, setEndgameStage] = useState<"battle" | "heartbeats" | "letters" | "summary">("battle");
+    const [endgameRestored, setEndgameRestored] = useState(false);
+    const initialMatchStatusChecked = useRef(false);
+
+    useEffect(() => {
+        if (!match) return;
+
+        const previous = previousMatchStatus.current;
+        const current = match.status;
+
+        previousMatchStatus.current = current;
+
+        if (
+            previous !== "playing" ||
+            current !== "finished" ||
+            !match.winner ||
+            celebrationScheduled.current
+        ) {
+            return;
+        }
+
+        const storageKey = `heartfleet-celebration-${roomId}`;
+
+        if (sessionStorage.getItem(storageKey) === "completed") {
+            return;
+        }
+
+        celebrationScheduled.current = true;
+        celebrationTimer.current = setTimeout(() => {
+            setShowCelebration(true);
+            celebrationTimer.current = null;
+        }, 3200);
+    }, [match?.status, match?.winner, roomId]);
+
+    useEffect(() => {
+        return () => {
+            if (celebrationTimer.current) {
+                clearTimeout(celebrationTimer.current);
+            }
+        };
+    }, []);
+
+    useEffect(() => {
+        if (!match || initialMatchStatusChecked.current) return;
+
+        initialMatchStatusChecked.current = true;
+
+        if (match.status === "finished") {
+            const savedStage = getEndgameStage(roomId);
+
+            setEndgameStage(savedStage ?? "summary");
+        }
+
+        setEndgameRestored(true);
+    }, [match?.status, roomId]);
+
+    useEffect(() => {
+        if (!endgameRestored || match?.status !== "finished") {
+            return;
+        }
+
+        saveEndgameStage(roomId, endgameStage);
+    }, [roomId, endgameStage, endgameRestored, match?.status]);
 
     const closeFeedback = useCallback(() => {
         setFeedback(null);
@@ -360,6 +435,48 @@ export default function LiveMatch({
         }
     }
 
+    useEffect(() => {
+        if (!match) return;
+
+        const previousStatus = previousMatchStatus.current;
+        const currentStatus = match.status;
+
+        previousMatchStatus.current = currentStatus;
+
+        if (
+            previousStatus !== "playing" ||
+            currentStatus !== "finished" ||
+            !match.winner
+        ) {
+            return;
+        }
+
+        const storageKey = `heartfleet-celebration-${roomId}`;
+
+        if (sessionStorage.getItem(storageKey)) {
+            return;
+        }
+
+        // Mark the celebration as seen so it does not
+        // replay on refresh.
+        sessionStorage.setItem(storageKey, "true");
+
+        // Allow the existing final-shot feedback to finish
+        // before opening the endgame celebration.
+        celebrationTimer.current = setTimeout(() => {
+            setShowCelebration(true);
+            celebrationTimer.current = null;
+        }, 3200);
+    }, [match?.status, match?.winner, roomId]);
+
+    useEffect(() => {
+        return () => {
+            if (celebrationTimer.current) {
+                clearTimeout(celebrationTimer.current);
+            }
+        };
+    }, []);
+
     if (loading) {
         return (
             <main className="flex min-h-[60vh] items-center justify-center text-[#927e96]">
@@ -501,8 +618,27 @@ export default function LiveMatch({
                 )}
             </div>
             <HeartEconomy roomId={roomId} />
-            <HeartbeatPanel roomId={roomId} />
-
+            {match.status === "playing" &&
+                !showCelebration && (
+                    <HeartbeatPanel roomId={roomId} />
+                )}
+            {match?.status === "finished" &&
+                endgameStage === "summary" &&
+                !showCelebration && (
+                    <div className="fixed inset-0 z-[90] overflow-y-auto bg-[#241b35]/75 px-4 py-8 backdrop-blur-md">
+                        <div className="flex min-h-full items-center justify-center">
+                            <VoyageSummary
+                                roomId={roomId}
+                                onHeartbeats={() => {
+                                    setEndgameStage("heartbeats");
+                                }}
+                                onLetters={() => {
+                                    setEndgameStage("letters");
+                                }}
+                            />
+                        </div>
+                    </div>
+                )}
             <StickyTurnIndicator
                 yourTurn={match.yourTurn}
                 opponentName={match.opponentName}
@@ -511,6 +647,57 @@ export default function LiveMatch({
                 busy={busy}
                 heartbeat={activeHeartbeat}
             />
+            {endgameRestored &&
+                match?.status === "finished" &&
+                endgameStage === "heartbeats" &&
+                !showCelebration && (
+                    <div className="fixed inset-0 z-[90] overflow-y-auto bg-[#241b35]/75 px-4 py-8 backdrop-blur-md">
+                        <div className="flex min-h-full items-center justify-center">
+                            <RemainingHeartbeats
+                                roomId={roomId}
+                                onContinue={() => {
+                                    setEndgameStage("letters");
+                                }}
+                                onBackToSummary={() => {
+                                    setEndgameStage("summary");
+                                }}
+                            />
+                        </div>
+                    </div>
+                )}
+
+            {showCelebration && match?.winner && (
+                <EndgameCelebration
+                    winner={match.winner}
+                    opponentName={match.opponentName}
+                    onComplete={() => {
+                        sessionStorage.setItem(
+                            `heartfleet-celebration-${roomId}`,
+                            "completed"
+                        );
+
+                        setShowCelebration(false);
+                        setEndgameStage("heartbeats");
+                    }}
+                />
+            )}
+
+            {endgameRestored &&
+                match?.status === "finished" &&
+                endgameStage === "letters" &&
+                !showCelebration && (
+                    <div className="fixed inset-0 z-[90] overflow-y-auto bg-[#241b35]/75 px-4 py-8 backdrop-blur-md">
+                        <div className="flex min-h-full items-center justify-center">
+                            <ClosingLetters
+                                roomId={roomId}
+                                opponentName={match.opponentName}
+                                onContinue={() => {
+                                    setEndgameStage("summary");
+                                }}
+                            />
+                        </div>
+                    </div>
+                )}
         </main>
     );
 }
