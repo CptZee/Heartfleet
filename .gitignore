@@ -39,3 +39,16 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Playwright - Test Results & Reports
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
+# Playwright authentication sessions
+/playwright/.auth/
+
+# Playwright environment variables
+.env.e2e
+.env.e2e.local
