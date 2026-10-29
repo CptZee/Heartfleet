@@ -7,8 +7,39 @@ import Header from "@/components/layout/Header";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Heartfleet — A little battle. A lot of heart.",
-  description: "A cozy two-player Battleship game with Hearts and Heartbeats.",
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
+  ),
+
+
+  title: "Heartfleet — A Battle of Ships & Hearts",
+
+  description:
+    "A little strategy, a little chemistry. Challenge someone special to a game of Battleship where every hit brings you closer.",
+
+  openGraph: {
+    type: "website",
+    siteName: "Heartfleet",
+    title: "Heartfleet — A Battle of Ships & Hearts",
+    description:
+      "A little strategy, a little chemistry. Challenge someone special to a game of Battleship where every hit brings you closer.",
+    images: [
+      {
+        url: "/og-image.png",
+        width: 1200,
+        height: 630,
+        alt: "Heartfleet — A Battle of Ships & Hearts",
+      },
+    ],
+  },
+
+  twitter: {
+    card: "summary_large_image",
+    title: "Heartfleet — A Battle of Ships & Hearts",
+    description:
+      "A little strategy, a little chemistry. Challenge someone special to a game of Battleship where every hit brings you closer.",
+    images: ["/og-image.png"],
+  },
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
