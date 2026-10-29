@@ -53,14 +53,21 @@ export async function GET(
         );
     }
 
+
     const database = db();
 
     const { data: room, error: roomError } = await database
         .from("game_rooms")
-        .select(
-            "id, host_id, guest_id, status, winner_id, " +
-            "started_at, finished_at, comeback_captain_id"
-        )
+        .select(`
+        id,
+        host_id,
+        guest_id,
+        status,
+        winner_id,
+        started_at,
+        finished_at,
+        comeback_captain_id
+    `)
         .eq("id", id)
         .single();
 
@@ -110,10 +117,15 @@ export async function GET(
 
         database
             .from("game_heartbeats")
-            .select(
-                "id, initiator_id, chooser_id, status, " +
-                "question_text, answer_text, completed_at"
-            )
+            .select(`
+        id,
+        initiator_id,
+        chooser_id,
+        status,
+        question_text,
+        answer_text,
+        completed_at
+    `)
             .eq("room_id", id)
             .in("status", ["completed", "skipped"])
             .order("completed_at", { ascending: true }),

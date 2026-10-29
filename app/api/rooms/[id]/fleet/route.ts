@@ -1,6 +1,7 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { currentUser } from "@/lib/auth/session";
+import type { Json } from "@/lib/database.types";
 import { db } from "@/lib/auth/db";
 import {
     isValidFleet,
@@ -132,6 +133,15 @@ export async function POST(
         const body = await request.json();
         const ships: unknown = body?.ships;
 
+        if (!Array.isArray(ships)) {
+            return NextResponse.json(
+                { error: "Invalid fleet data." },
+                { status: 400 }
+            );
+        }
+
+        const shipsJson = ships as Json;
+
         if (!isValidFleet(ships as PlacedShip[])) {
             return NextResponse.json(
                 { error: "Invalid fleet arrangement." },
@@ -160,7 +170,7 @@ export async function POST(
             {
                 p_room_id: id,
                 p_user_id: user.id,
-                p_ships: ships,
+                p_ships: shipsJson,
             }
         );
 

@@ -413,7 +413,8 @@ test.describe("Heartfleet - Match Gameplay", () => {
         const state = await getMatchState(attacker, room.id);
 
         const shotsAtCoordinate = state.yourShots.filter(
-            shot => shot.row === 9 && shot.col === 9
+            (shot: { row: number; col: number }) =>
+                shot.row === 9 && shot.col === 9
         );
 
         expect(shotsAtCoordinate).toHaveLength(1);
@@ -670,8 +671,11 @@ test.describe("Heartfleet - Match Gameplay", () => {
         expect(loserState.yourTurn).toBe(false);
 
         expect(
-            winnerState.yourShots.filter(shot => shot.hit)
+            winnerState.yourShots.filter(
+                (shot: { hit: boolean }) => shot.hit
+            )
         ).toHaveLength(17);
+
 
         // Combat must remain disabled after victory.
         const rejectedAttack = await attack(
