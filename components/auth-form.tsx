@@ -45,6 +45,7 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
 
       if (!response.ok) {
         setError(result.error || "Something went wrong.");
+        setBusy(false);
         return;
       }
 
@@ -52,7 +53,6 @@ export function AuthForm({ mode }: { mode: "login" | "register" }) {
       router.refresh();
     } catch {
       setError("Connection failed. Please try again.");
-    } finally {
       setBusy(false);
     }
   }

@@ -1,10 +1,45 @@
 import Link from "next/link";
 import { GAME_RULES } from "@/constants/game";
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  "http://localhost:3000";
+
+const structuredData = {
+  "@context": "https://schema.org",
+  "@type": "VideoGame",
+  name: "Heartfleet",
+  url: siteUrl,
+  description:
+    "A free online two-player Battleship-style game with romantic questions and social interactions.",
+  image: new URL("/og-image.png", siteUrl).toString(),
+  genre: ["Strategy", "Casual", "Social"],
+  gamePlatform: "Web Browser",
+  numberOfPlayers: {
+    "@type": "QuantitativeValue",
+    minValue: 2,
+    maxValue: 2,
+  },
+  inLanguage: "en",
+  isAccessibleForFree: true,
+};
+
+export function HeartfleetStructuredData() {
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{
+        __html: JSON.stringify(structuredData)
+          .replace(/</g, "\\u003c"),
+      }}
+    />
+  );
+}
+
 export default function HomePage() {
   return (
     <main className="relative mx-auto w-full max-w-[1440px] px-5 pb-16 sm:px-8 lg:px-12">
-
+      <HeartfleetStructuredData />
       <section className="relative w-full min-w-0 overflow-hidden rounded-[2rem] bg-gradient-to-br from-[#ffedf3] via-[#f9f0fb] to-[#e4f5fa] px-4 py-12 shadow-sm sm:rounded-[2.5rem] sm:px-12 sm:py-16 lg:py-24">
         <div
           aria-hidden
@@ -21,6 +56,7 @@ export default function HomePage() {
         </div>
 
         <div className="relative z-10 grid min-w-0 grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-12">
+
           {/* Hero Content */}
           <div className="min-w-0 text-center lg:text-left">
             <p className="mx-auto mb-5 max-w-full text-[10px] font-bold uppercase tracking-[0.15em] text-[#aa7396] sm:text-xs sm:tracking-[0.24em] lg:mx-0">
@@ -29,24 +65,25 @@ export default function HomePage() {
 
             <h1 className="max-w-full text-[clamp(2.5rem,11vw,6rem)] font-black leading-[1.1] tracking-tight text-[#815875] sm:text-7xl xl:text-8xl">
               Heartfleet
-              <span className="text-[#e99eb8]">♡</span>
+              <span className="ml-2 text-[#e99eb8]">♡</span>
             </h1>
 
             <p className="mx-auto mt-6 max-w-xl text-base leading-relaxed text-[#796b83] sm:text-lg lg:mx-0">
-              A two-player Battleship game where every move brings you
-              closer. Sink their ships, share a few smiles, and see where
-              the conversation takes you.
+              Play Battleship online with someone special. Heartfleet is a free,
+              two-player strategy game where classic naval battles meet thoughtful
+              questions and meaningful conversations. Sink ships, earn Hearts,
+              and discover a little more about each other.
             </p>
 
             <Link
               href="/lobby"
               className="mt-9 inline-flex max-w-full items-center justify-center rounded-full bg-[#b97498] px-6 py-4 text-center text-sm font-bold text-white shadow-lg shadow-[#dfb5cb]/40 transition hover:-translate-y-0.5 hover:bg-[#a45e83] sm:px-8 sm:text-base"
             >
-              Set sail together →
+              Play Heartfleet Together →
             </Link>
 
             <p className="mt-5 text-xs leading-relaxed text-[#927e96] sm:text-sm">
-              Two players · Private room · Around 30–45 minutes
+              Free to play · Two players · Private rooms · Around 30–45 minutes
             </p>
           </div>
 
@@ -99,7 +136,12 @@ export default function HomePage() {
       </section>
 
       <section id="rules" className="pb-20">
-        <div className="mb-8 text-center"><p className="text-xs font-bold uppercase tracking-[0.2em] text-[#b7789c]">The basics</p><h2 className="mt-3 text-3xl font-bold text-[#765773]">How to play</h2></div>
+        <div className="mb-8 text-center">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-[#b7789c]">The basics</p>
+          <h2 className="mt-3 text-3xl font-bold text-[#765773]">
+            How to Play Heartfleet
+          </h2>
+        </div>
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">{GAME_RULES.map(rule => <article key={rule.number} className="rounded-3xl border border-[#f1e3ec] bg-white p-7 shadow-sm"><span className="text-sm font-bold text-[#cf91b0]">{rule.number}</span><h3 className="mt-3 text-xl font-bold text-[#765773]">{rule.title}</h3><p className="mt-3 leading-7 text-[#766b7e]">{rule.text}</p></article>)}</div>
       </section>
 
