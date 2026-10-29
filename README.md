@@ -37,7 +37,7 @@ These instructions are for someone setting up Heartfleet **from a fresh clone**.
 ### 1. Clone and install
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_HEARTFLEET_REPOSITORY.git
+git clone https://github.com/CptZee/Heartfleet
 cd YOUR_HEARTFLEET_REPOSITORY
 npm install
 ```
