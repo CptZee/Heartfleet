@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     if (!validUsername(body?.username) || !validPassword(body?.password))
       return NextResponse.json({ error: "Use 3–20 letters, numbers or underscores for username, and an 8–128 character password." }, { status: 400 });
-    const username = body.username.toLowerCase();
+    const username = body.username;
     const password_hash = await argon2.hash(body.password, { type: argon2.argon2id });
     const { data, error } = await db().from("users").insert({ username, password_hash }).select("id").single();
     if (error) {
