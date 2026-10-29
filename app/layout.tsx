@@ -1,28 +1,55 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { currentUser } from "@/lib/auth/session";
-import { LogoutButton } from "@/components/logout-button";
 import { Suspense } from "react";
 import Header from "@/components/layout/Header";
 import "./globals.css";
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  "http://localhost:3000";
+
+const siteName = "Heartfleet";
+
+const title =
+  "Heartfleet — Play Battleship with a Little Heart";
+
+const description =
+  "Play Heartfleet, a free online two-player Battleship game with a romantic twist. Challenge someone special, sink ships, earn Hearts, and discover each other through thoughtful questions.";
+
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
-  ),
+  metadataBase: new URL(siteUrl),
 
+  title: {
+    default: title,
+    template: "%s | Heartfleet",
+  },
 
-  title: "Heartfleet — A Battle of Ships & Hearts",
+  description,
 
-  description:
-    "A little strategy, a little chemistry. Challenge someone special to a game of Battleship where every hit brings you closer.",
+  applicationName: siteName,
+
+  keywords: [
+    "Heartfleet",
+    "online Battleship game",
+    "two-player Battleship",
+    "Battleship game online",
+    "multiplayer Battleship",
+    "couples games online",
+    "games for couples",
+    "romantic online games",
+    "online games for two",
+  ],
+
+  alternates: {
+    canonical: "/",
+  },
 
   openGraph: {
     type: "website",
-    siteName: "Heartfleet",
-    title: "Heartfleet — A Battle of Ships & Hearts",
-    description:
-      "A little strategy, a little chemistry. Challenge someone special to a game of Battleship where every hit brings you closer.",
+    locale: "en_US",
+    url: "/",
+    siteName,
+    title,
+    description,
     images: [
       {
         url: "/og-image.png",
@@ -35,10 +62,20 @@ export const metadata: Metadata = {
 
   twitter: {
     card: "summary_large_image",
-    title: "Heartfleet — A Battle of Ships & Hearts",
-    description:
-      "A little strategy, a little chemistry. Challenge someone special to a game of Battleship where every hit brings you closer.",
+    title,
+    description,
     images: ["/og-image.png"],
+  },
+
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+    },
   },
 };
 
@@ -66,7 +103,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
               {/* Heartfleet Branding */}
               <div>
                 <p className="text-lg font-black tracking-tight text-[#815875]">
-                  Heartfleet<span className="text-[#e99eb8]">♡</span>
+                  Heartfleet<span className="ml-2 text-[#e99eb8]">♡</span>
                 </p>
                 <p className="mt-1 text-xs text-[#927e96]">
                   A little battle. A lot of heart.
