@@ -38,7 +38,7 @@ These instructions are for someone setting up Heartfleet **from a fresh clone**.
 
 ```bash
 git clone https://github.com/CptZee/Heartfleet
-cd YOUR_HEARTFLEET_REPOSITORY
+cd Heartfleet
 npm install
 ```
 
