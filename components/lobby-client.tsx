@@ -3,6 +3,7 @@
 
 import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 type Mode = "create" | "join";
 
@@ -86,7 +87,7 @@ export default function LobbyClient({
 
   return (
     <main className="relative mx-auto flex w-full max-w-[1440px] flex-1 items-center justify-center px-5 py-12 text-[#51475d] sm:px-8 lg:px-12">
-      <div className="grid w-full items-center gap-12 lg:grid-cols-[0.85fr_1.15fr]">
+      <div className="grid w-full items-start gap-12 lg:grid-cols-[0.85fr_1.15fr]">
         <aside className="hidden rounded-[2.5rem] bg-gradient-to-br from-[#e6f4f8] to-[#f9e9f1] p-10 text-center lg:block">
           <div className="mb-6 text-5xl text-[#b97498] motion-safe:animate-pulse">
             ♡
@@ -114,6 +115,21 @@ export default function LobbyClient({
               />
             ))}
           </div>
+          {/* My Rooms Navigation */}
+          <div className="mt-6 border-t border-[#f0e0ed] pt-6">
+            <Link
+              href="/rooms"
+              className="flex w-full items-center justify-center gap-2 rounded-full border-2 border-[#e9b4d0] bg-[#fff7fa] px-6 py-3.5 text-sm font-bold text-[#a26085] transition hover:border-[#d68caf] hover:bg-[#fff0f5]"
+            >
+              <span aria-hidden="true">♡</span>
+              View My Rooms
+              <span aria-hidden="true">→</span>
+            </Link>
+
+            <p className="mt-3 text-center text-xs text-[#927e96]">
+              Already on a voyage? Pick up where you left off.
+            </p>
+          </div>
         </aside>
 
         <section className="w-full max-w-xl rounded-[2rem] border border-[#f0e0ed] bg-white/90 p-7 shadow-xl shadow-[#d6b8d0]/15 sm:p-11">
@@ -132,7 +148,36 @@ export default function LobbyClient({
               Just two captains, two fleets, and a little chemistry.
             </p>
           </div>
+          <Link
+            href="/tutorial"
+            className="group mt-6 flex items-center gap-4 rounded-2xl border-2 border-[#e9b4d0] bg-gradient-to-r from-[#fff0f7] via-[#ffe7f2] to-[#f9eafa] p-5 shadow-[0_4px_20px_rgba(185,116,152,0.12)] transition-all duration-300 hover:-translate-y-1 hover:border-[#d68caf] hover:shadow-[0_8px_28px_rgba(185,116,152,0.22)] sm:p-6"
+          >
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-white text-3xl shadow-sm transition-transform group-hover:rotate-[-8deg] group-hover:scale-110">
+              ♡
+            </div>
 
+            <div className="min-w-0 flex-1">
+              <div className="mb-1 flex flex-wrap items-center gap-2">
+                <h3 className="text-base font-extrabold text-[#894d72] sm:text-lg">
+                  New to Heartfleet?
+                </h3>
+
+                <span className="rounded-full bg-[#b97498] px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-white">
+                  Interactive
+                </span>
+              </div>
+
+              <p className="text-sm leading-relaxed text-[#8c7185]">
+                Learn how to place ships, attack, and discover Hearts &
+                Heartbeats in a guided practice voyage.
+              </p>
+
+              <span className="mt-3 inline-flex items-center gap-2 rounded-full bg-[#b97498] px-4 py-2 text-xs font-bold text-white transition-colors group-hover:bg-[#a96388]">
+                Start Tutorial
+                <span aria-hidden="true">→</span>
+              </span>
+            </div>
+          </Link>
           {/* Create / Join Room Selection */}
           <div
             className="mt-9 grid grid-cols-2 gap-2 rounded-2xl bg-[#f7eff6] p-1.5"
