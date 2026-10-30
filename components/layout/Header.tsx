@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { currentUser } from "@/lib/auth/session";
-// ONSU9WQILGxfdP7n
+import ProfileDropdown from "@/components/layout/ProfileDropdown";
+
 export default async function Header() {
     const user = await currentUser();
 
@@ -16,21 +17,7 @@ export default async function Header() {
 
                 <nav className="flex items-center gap-4">
                     {user ? (
-                        <>
-                            <Link href="/conversations" className="text-sm font-medium text-[#b97498] hover:underline">Conversations</Link>
-                            <span className="text-sm text-[#815875]">
-                                {user.username}
-                            </span>
-
-                            <form action="/api/auth/logout" method="POST">
-                                <button
-                                    type="submit"
-                                    className="text-sm font-medium text-[#b97498]"
-                                >
-                                    Logout
-                                </button>
-                            </form>
-                        </>
+                        <ProfileDropdown username={user.username} />
                     ) : (
                         <>
                             <Link

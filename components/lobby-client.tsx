@@ -87,7 +87,7 @@ export default function LobbyClient({
 
   return (
     <main className="relative mx-auto flex w-full max-w-[1440px] flex-1 items-center justify-center px-5 py-12 text-[#51475d] sm:px-8 lg:px-12">
-      <div className="grid w-full items-center gap-12 lg:grid-cols-[0.85fr_1.15fr]">
+      <div className="grid w-full items-start gap-12 lg:grid-cols-[0.85fr_1.15fr]">
         <aside className="hidden rounded-[2.5rem] bg-gradient-to-br from-[#e6f4f8] to-[#f9e9f1] p-10 text-center lg:block">
           <div className="mb-6 text-5xl text-[#b97498] motion-safe:animate-pulse">
             ♡
@@ -114,6 +114,21 @@ export default function LobbyClient({
                   }`}
               />
             ))}
+          </div>
+          {/* My Rooms Navigation */}
+          <div className="mt-6 border-t border-[#f0e0ed] pt-6">
+            <Link
+              href="/rooms"
+              className="flex w-full items-center justify-center gap-2 rounded-full border-2 border-[#e9b4d0] bg-[#fff7fa] px-6 py-3.5 text-sm font-bold text-[#a26085] transition hover:border-[#d68caf] hover:bg-[#fff0f5]"
+            >
+              <span aria-hidden="true">♡</span>
+              View My Rooms
+              <span aria-hidden="true">→</span>
+            </Link>
+
+            <p className="mt-3 text-center text-xs text-[#927e96]">
+              Already on a voyage? Pick up where you left off.
+            </p>
           </div>
         </aside>
 
