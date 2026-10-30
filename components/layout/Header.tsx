@@ -17,6 +17,7 @@ export default async function Header() {
                 <nav className="flex items-center gap-4">
                     {user ? (
                         <>
+                            <Link href="/conversations" className="text-sm font-medium text-[#b97498] hover:underline">Conversations</Link>
                             <span className="text-sm text-[#815875]">
                                 {user.username}
                             </span>

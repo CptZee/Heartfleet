@@ -75,10 +75,6 @@ test.describe("Heartfleet - Ship Placement", () => {
     }) => {
         await preparePlacement(playerA, playerB);
 
-        const board = playerA.getByRole("region", {
-            name: "Your ocean",
-        });
-
         await expect(
             playerA.getByText("0 / 5 ships placed")
         ).toBeVisible();

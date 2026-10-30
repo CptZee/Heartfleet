@@ -12,11 +12,6 @@ import {
     guestFleet,
 } from "./helpers/match";
 
-type Room = {
-    id: string;
-    code: string;
-};
-
 type Ship = {
     id: string;
     row: number;
@@ -37,13 +32,6 @@ type MatchShot = {
     col: number;
     hit: boolean;
     sunkShip: string | null;
-};
-
-type MatchState = {
-    status: "playing" | "finished";
-    yourTurn: boolean;
-    yourShots: MatchShot[];
-    incomingShots: MatchShot[];
 };
 
 function shipCoordinates(ships: Ship[]): string[] {
